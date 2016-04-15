@@ -1,0 +1,6 @@
+---
+firewall_ruleset: []
+firewall_default_input: accept
+firewall_default_output: accept
+firewall_default_forward: accept
+

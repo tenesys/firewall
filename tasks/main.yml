@@ -1,0 +1,19 @@
+---
+- name: Ensure iptables-persistent is installed
+  package: name=iptables-persistent state=present
+  remote_user: root
+
+- name: Copy watchdog script
+  copy: src=firewall-watchdog.sh dest=/sbin/firewall-watchdog owner=root group=root mode="u=rwx,g=rwx,o="
+
+- name: Generate iptables rules script
+  template: src=firewall.sh.j2 dest=/tmp/firewall.sh owner=root group=root mode="u=rwx,g=rwx,o="
+
+- name: Populate firewall with desired rules
+  shell: /tmp/firewall.sh
+
+- name: Save current firewall config
+  shell: iptables-save | tee /etc/iptables/rules.v4 | sed -r "s/\[[0-9]+:[0-9]+\]//g" | grep -vE "^#" > /var/lib/ansible-firewall
+
+#- name: Remove firewall script
+#  file: name=/tmp/firewall.sh state=absent

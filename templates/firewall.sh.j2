@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# flush active rules
+iptables -F
+iptables -X
+
+# set default policy based on ansible vars ##
+iptables -P OUTPUT {{firewall_default_output|upper}}
+iptables -P FORWARD {{firewall_default_forward|upper}}
+iptables -P INPUT {{firewall_default_input|upper}}
+
+# accept loopback traffic
+iptables -A INPUT -i lo -j ACCEPT
+
+# make sure existing connections are okay
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT 
+iptables -A INPUT -m conntrack --ctstate RELATED -j ACCEPT 
+
+{# for each ruleset defined in variable #}
+{% for r in firewall_ruleset %}
+
+    {# for each possible/implemented target #}
+    {% for t in ["log", "accept", "drop"] %}
+
+        {# if target was defined in ruleset #}
+        {% if t in r %}
+
+            {# for each rule #}
+            {% for a in r[t] %}
+
+iptables -A INPUT\
+{% if 'src' in a %} --src {{a.src}}{% endif %}\
+{% if 'sport' in a %} --sport {{a.sport}}{% endif %}\
+{% if 'proto' in a %} -p {{a.proto}}{% else %} -p all{% endif %}\
+{% if 'dst' in a %} --dst {{a.dst}}{% endif %}\
+{% if 'dport' in a %} --dport {{a.dport}}{% endif %}\
+ -j {{t|upper}}
+             
+            {% endfor %} 
+
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+
+
