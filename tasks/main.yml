@@ -8,7 +8,7 @@
   remote_user: root
 
 - name: Copy watchdog script
-  copy: src=firewall-watchdog.sh dest=/sbin/firewall-watchdog owner=root group=root mode="u=rwx,g=rwx,o="
+  copy: src=firewall-watchdog.sh dest=/usr/local/sbin/firewall-watchdog owner=root group=root mode=750
 
 - name: Generate iptables rules script
   template: src=firewall.sh.j2 dest=/tmp/firewall.sh owner=root group=root mode="u=rwx,g=rwx,o="
@@ -18,6 +18,9 @@
 
 - name: Save current firewall config
   shell: iptables-save | tee /etc/iptables/rules.v4 | sed -r "s/\[[0-9]+:[0-9]+\]//g" | grep -vE "^#" > /var/lib/ansible-firewall
+
+- name: Add users to sudoers for firewall-watchdog execution
+  lineinfile: dest=/etc/sudoers state=present line="zabbix ALL=(ALL) NOPASSWD:/usr/local/sbin/firewall-watchdog" validate='visudo -cf %s'
 
 #- name: Remove firewall script
 #  file: name=/tmp/firewall.sh state=absent
