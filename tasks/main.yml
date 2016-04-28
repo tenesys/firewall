@@ -22,5 +22,32 @@
 - name: Add users to sudoers for firewall-watchdog execution
   lineinfile: dest=/etc/sudoers state=present line="zabbix ALL=(ALL) NOPASSWD:/usr/local/sbin/firewall-watchdog" validate='visudo -cf %s'
 
+- name: Check old zabbix_agentd.d directory
+  stat: path=/etc/zabbix/zabbix_agentd.d
+  register: zabbix_old_path
+
+- name: Check new zabbix_agentd.conf.d directory
+  stat: path=/etc/zabbix/zabbix_agentd.conf.d
+  register: zabbix_new_path
+
+#- name: Fail if zabbix conf directory was not found
+#  when: zabbix_old_path is not defined and zabbix_new_path is not defined
+#  fail: msg="Zabbix configuration was not found"
+
+- name: Add firewall.state to zabbix 
+  copy: src=firewall-watchdog.conf dest=/etc/zabbix/zabbix_agentd.conf.d/firewall-watchdog.conf owner=root group=root mode=644
+  register: fw_zabbix
+  when: zabbix_new_path.stat.exists
+
+- name: Add firewall.state to zabbix (old path)
+  copy: src=firewall-watchdog.conf dest=/etc/zabbix/zabbix_agentd.d/firewall-watchdog.conf owner=root group=root mode=644
+  register: fw_zabbix_old
+  when: zabbix_old_path.stat.exists
+
+- name: Restart zabbix
+  service: name=zabbix-agent state=restarted
+  when: fw_zabbix.changed or fw_zabbix_old.changed
+
+
 #- name: Remove firewall script
 #  file: name=/tmp/firewall.sh state=absent
