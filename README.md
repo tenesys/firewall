@@ -25,8 +25,7 @@ You will need to create some own variables with custom rulesets.
         - {src: 10.20.30.40/32, dport: 80}
         - {proto: icmp}
     
-You can use: src, dst, sport, dport, iface, proto
-Available dicts: accept, drop, log
+You can use: `src, dst, sport, dport, iface, proto`, available dicts: `accept, drop, log`
 
 Then you can define your firewall_ruleset: `["{{fw_common}}", "{{fw_webserver}}"]`  
 
