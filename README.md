@@ -28,7 +28,7 @@ You will need to create some own variables with custom rulesets.
 You can use: src, dst, sport, dport, iface, proto
 Available dicts: accept, drop, log
 
-Then you can define your firewall_ruleset: ["{{fw_common}}", "{{fw_webserver}}"]
+Then you can define your firewall_ruleset: `["{{fw_common}}", "{{fw_webserver}}"]`  
 
 Rules are evaluated from left to right, from top to bottom.
 
